@@ -27,11 +27,7 @@
 			var sceneCircleObjArray = [];
 			var pointArrayHasTemp = false;
 			var linearray = [];
-<<<<<<< HEAD
-=======
 			var useMouse = false;
->>>>>>> 455f8739773d9b7c152d7111befdb617f0af0b4d
-
 			var init = function () {
 
 				renderer = new THREE.CanvasRenderer();
@@ -75,21 +71,6 @@
 			function onMouseDownEventCallBack(event)
 			{
 				mousedown = true;
-<<<<<<< HEAD
-				if(event.button == 0) {
-					if(pointArrayHasTemp) {
-						pointarray.pop();
-						pointArrayHasTemp = false;
-					}
-					recordVertex(mouse.x, mouse.y);
-					markVertex(mouse.x, mouse.y);
-					if(pointarray.length >1) {
-						var diag = computeVoronoi(pointarray);
-						reDrawCells(diag);
-					}
-				} else {
-					clearVoronoi();
-=======
 				if(useMouse) {
 					if(event.button == 0) {
 						if(pointArrayHasTemp) {
@@ -105,7 +86,6 @@
 					} else {
 						clearVoronoi();
 					}
->>>>>>> 455f8739773d9b7c152d7111befdb617f0af0b4d
 				}
 			}
 			

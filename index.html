@@ -13,6 +13,7 @@
 	<body>
 		<script src="http://cdnjs.cloudflare.com/ajax/libs/three.js/r57/three.min.js"></script>
 		<script src="https://rawgit.com/gorhill/Javascript-Voronoi/master/rhill-voronoi-core.min.js"></script>
+		<script src="http://js.leapmotion.com/leap-0.6.2.min.js"></script>
 		<script>
 
 			var camera, scene, renderer;
@@ -59,9 +60,51 @@
 			{
 				return 2*camera.position.z * Math.tan((Math.PI/180)*(camera.fov/2));
 			}
+
+			Leap.loop(controllerOptions, function(frame) {
+				if(frame.hands.length>0) {
+					for (var i = 0; i < frame.hands.length; i++) {
+						if(frame.hands[i].type == "right") {
+							var pointable = frame.hands[i].indexFinger;
+							var thumb     = frame.hands[i].thumb;
+							if(pointable.valid) {
+								var iBox = frame.interactionBox;
+								var leapCoordsNormalized = pointable.stabilizedTipPosition;
+								leapCoordsNormalized[1] -= iBox.height/2;
+								scaleArray3(leapCoordsNormalized, 0.1);
+								fingerPointer.position.set(leapCoordsNormalized[0], leapCoordsNormalized[1], leapCoordsNormalized[2]);
+							}
+							if(thumb.valid) {
+								if(!thumb.extended) {
+									console.log('recording curve');
+									if(pointArrayHasTemp) {
+										pointarray.pop();
+										pointArrayHasTemp = false;
+									}
+									recordVertex(mouse.x, mouse.y);
+									markVertex(mouse.x, mouse.y);
+									if(pointarray.length >1) {
+										var diag = computeVoronoi(pointarray);
+										reDrawCells(diag);
+									}
+								} else {
+									var offset = 0.5;
+									mouse.x	= ((event.clientX / window.innerWidth) - offset) * visibleSceneWidth() ;
+									mouse.y	= -((event.clientY / window.innerHeight) - offset) * visibleSceneHeight();
+								}
+
+							}
+						}
+						else {
+							console.log('clear the screen');
+							clearVoronoi();
+						}
+					}
+				}
+			});
 			function onMouseMoveEventCallBack(event)
 			{
-				if(!mousedown) {
+				if(useMouse && !mousedown) {
 					var offset = 0.5;
 					mouse.x	= ((event.clientX / window.innerWidth) - offset) * visibleSceneWidth() ;
 					mouse.y	= -((event.clientY / window.innerHeight) - offset) * visibleSceneHeight();

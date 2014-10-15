@@ -18,6 +18,8 @@
 
 			var camera, scene, renderer;
 			var geometry, material, mesh;
+			var fingerPointer = {x:0, y:0};
+			var recordFingerPointer = false;
 			var mouse	= {x : 0, y : 0};
 			var prevMouse = {x: 0, y: 0};
 			var mousedown = false;
@@ -29,6 +31,7 @@
 			var pointArrayHasTemp = false;
 			var linearray = [];
 			var useMouse = false;
+			var controllerOptions = {enableGestures: true};
 			var init = function () {
 
 				renderer = new THREE.CanvasRenderer();
@@ -71,32 +74,34 @@
 								var iBox = frame.interactionBox;
 								var leapCoordsNormalized = pointable.stabilizedTipPosition;
 								leapCoordsNormalized[1] -= iBox.height/2;
-								scaleArray3(leapCoordsNormalized, 0.1);
-								fingerPointer.position.set(leapCoordsNormalized[0], leapCoordsNormalized[1], leapCoordsNormalized[2]);
+								scaleArray3(leapCoordsNormalized, 0.8);
+								fingerPointer = {x:leapCoordsNormalized[0], y:leapCoordsNormalized[1]};
 							}
 							if(thumb.valid) {
 								if(!thumb.extended) {
-									console.log('recording curve');
-									if(pointArrayHasTemp) {
-										pointarray.pop();
-										pointArrayHasTemp = false;
-									}
-									recordVertex(mouse.x, mouse.y);
-									markVertex(mouse.x, mouse.y);
-									if(pointarray.length >1) {
-										var diag = computeVoronoi(pointarray);
-										reDrawCells(diag);
+									if(recordFingerPointer) {
+										if(pointArrayHasTemp) {
+											pointarray.pop();
+											pointArrayHasTemp = false;
+										}
+										recordVertex(fingerPointer.x, fingerPointer.y);
+										markVertex(fingerPointer.x, fingerPointer.y);
+										if(pointarray.length >1) {
+											var diag = computeVoronoi(pointarray);
+											reDrawCells(diag);
+										}
+										recordFingerPointer = false;
 									}
 								} else {
-									var offset = 0.5;
-									mouse.x	= ((event.clientX / window.innerWidth) - offset) * visibleSceneWidth() ;
-									mouse.y	= -((event.clientY / window.innerHeight) - offset) * visibleSceneHeight();
+									recordFingerPointer = true;
+									// var offset = 0.5;
+									// mouse.x	= ((event.clientX / window.innerWidth) - offset) * visibleSceneWidth() ;
+									// mouse.y	= -((event.clientY / window.innerHeight) - offset) * visibleSceneHeight();
 								}
 
 							}
 						}
 						else {
-							console.log('clear the screen');
 							clearVoronoi();
 						}
 					}
@@ -140,10 +145,17 @@
 			var animate = function () {
 
 				requestAnimationFrame( animate );
-				mousePointer.position.set(mouse.x, mouse.y, 0);
+				mousePointer.position.set(fingerPointer.x, fingerPointer.y, 0);
 				dynamicVoronoi();
 				renderer.render( scene, camera );
 
+			}
+
+			function scaleArray3(arr, scaleFactor)
+			{
+				for(i=0; i<arr.length; i++) {
+					arr[i] *= scaleFactor;
+				}
 			}
 
 			function dynamicVoronoi(x,y)
@@ -151,7 +163,7 @@
 				if(pointArrayHasTemp) {
 					pointarray.pop();
 				}
-				recordVertex(mouse.x, mouse.y);
+				recordVertex(fingerPointer.x, fingerPointer.y);
 				pointArrayHasTemp = true;
 				var diag = computeVoronoi(pointarray);
 				reDrawCells(diag);

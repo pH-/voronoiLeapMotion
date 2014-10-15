@@ -27,6 +27,7 @@
 			var sceneCircleObjArray = [];
 			var pointArrayHasTemp = false;
 			var linearray = [];
+			var useMouse = false;
 
 			var init = function () {
 
@@ -71,19 +72,21 @@
 			function onMouseDownEventCallBack(event)
 			{
 				mousedown = true;
-				if(event.button == 0) {
-					if(pointArrayHasTemp) {
-						pointarray.pop();
-						pointArrayHasTemp = false;
+				if(useMouse) {
+					if(event.button == 0) {
+						if(pointArrayHasTemp) {
+							pointarray.pop();
+							pointArrayHasTemp = false;
+						}
+						recordVertex(mouse.x, mouse.y);
+						markVertex(mouse.x, mouse.y);
+						if(pointarray.length >1) {
+							var diag = computeVoronoi(pointarray);
+							reDrawCells(diag);
+						}
+					} else {
+						clearVoronoi();
 					}
-					recordVertex(mouse.x, mouse.y);
-					markVertex(mouse.x, mouse.y);
-					if(pointarray.length >1) {
-						var diag = computeVoronoi(pointarray);
-						reDrawCells(diag);
-					}
-				} else {
-					clearVoronoi();
 				}
 			}
 			
@@ -194,7 +197,7 @@
 				for (var i = 0; i < sceneCircleObjArray.length; i++) {
 					scene.remove(sceneCircleObjArray[i]);
 				};
-				
+
 				linearray.splice(0,linearray.length);
 				pointarray.splice(0, pointarray.length);
 				sceneCircleObjArray.splice(0, sceneCircleObjArray.length);
